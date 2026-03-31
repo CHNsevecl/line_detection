@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/sevecl/Desktop/C/line_detection/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++ -isystem /usr/include/opencv4 -g -std=gnu++17 -o CMakeFiles/line_detection.dir/main.cpp.o -c /home/sevecl/Desktop/C/line_detection/main.cpp",
+  "file": "/home/sevecl/Desktop/C/line_detection/main.cpp",
+  "output": "CMakeFiles/line_detection.dir/main.cpp.o"
+}
+]

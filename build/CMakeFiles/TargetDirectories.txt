@@ -1,0 +1,3 @@
+/home/sevecl/Desktop/C/line_detection/build/CMakeFiles/line_detection.dir
+/home/sevecl/Desktop/C/line_detection/build/CMakeFiles/edit_cache.dir
+/home/sevecl/Desktop/C/line_detection/build/CMakeFiles/rebuild_cache.dir
