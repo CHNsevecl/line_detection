@@ -1,7 +1,9 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <cstdlib>
+#include <sstream> 
 #include <thread>
+#include <iomanip>
 #include "uart.h"
 #include "PID.h"
 #include <mutex>
@@ -12,18 +14,22 @@ UART uart; // 假设单片机连接在 /dev/ttyAMA0，波特率为 115200
 mutex uart_mutex;
 bool uart_flag = true; // UART 初始化标志
 
-void info_to_MCU(vector<string> info) {
+
+void info_to_MCU(vector<vector<string>> info) {
     // 模拟发送数据到单片机，这里我们只是打印出来
     lock_guard<mutex> lock(uart_mutex);
-    string messages = "";
     for(int i=0; i<info.size(); i++) {
-        messages = messages + " " + info[i]; // 发送数据到单片机，每条信息后加换行符
+        string messages = "";
+        for (int j=0; j<info[i].size(); j++) {
+            messages = messages + " " + info[i][j]; // 发送数据到单片机，每条信息后加换行符
+        }
+        messages += "\n";
+        uart.send(messages);
+        usleep(2500);
     }
-    messages += "\n";
-    uart.send(messages);
-    usleep(50000); // 模拟发送间隔，100ms
     uart_flag = true; // 发送完成后重置标志
 }
+
 
 int main()
 {   
@@ -34,7 +40,7 @@ int main()
     // 1. 打开摄像头
     string  pipeline={
         "libcamerasrc camera-name=/base/axi/pcie@1000120000/rp1/i2c@88000/imx708@1a ! "
-        "video/x-raw, format=NV12, width=640, height=480, framerate=60/1 ! "
+        "video/x-raw, format=NV12, width=640, height=480, framerate=90/1 ! "
         "appsink drop=true max-buffers=0 sync=false"
     };
 
@@ -50,16 +56,19 @@ int main()
     vector<Vec4i> hierarchy;
     Mat frame;
     Mat gray;
-    int start_row = 240;
+    int start_row = 0;
     int end_row = 480;
     int img_width = 640;
+    float kp_future = 0.1;
+    float kp_now = 0.9;
 
-    PID pid(40.0f, 0.01f, 0.02f); // 初始化 PID 控制器
+    PID pid(60.0f, 0.01f, 1.0f); // 初始化 PID 控制器
 
     while (true){
         cap >> frame;
-        vector<Point> center_points(240);// 存储每一行重心x的坐标  
-        vector<string> info(2);
+        vector<Point> center_points(end_row - start_row);// 存储每一行重心x的坐标  
+        vector<vector<string>> info(end_row/10/2, vector<string>(2)); // 存储 PID 输出和误差的字符串信息
+     
         if(frame.empty()){
             std::cout << "抓捕失败" << endl;
             break;
@@ -96,15 +105,29 @@ int main()
     
 
         // ========== 3. 显示 ==========
-        circle(frame, Point(320, 260), 5, Scalar(255, 0, 0), -1);
+        circle(frame, Point(320, 240), 5, Scalar(255, 0, 0), -1);
         imshow("Camera", frame);
 
-        int error_code = center_points[200].x - 320; // 以中心点偏移为输入
-        int error_output = pid.compute(abs(error_code)); // 计算 PID 输出
-        
-        info[0] = to_string(error_code);
-        info[1] = to_string(error_output);
 
+        // 拟合线计算
+        int dx_now =0;
+        for(int y = end_row-1;y >= end_row*3/4 + 10 ;y -=10){
+            int dx = center_points[y].x - 320;
+            dx_now += dx;
+        }
+        dx_now /= (end_row/10/4); // 取平均值
+
+        int dx_future =0;
+        for(int y = end_row*3/4;y >= end_row/2 ;y -=10){
+            int dx = center_points[y].x - 320;
+            dx_future += dx;
+        }
+        dx_future /= (end_row/10/4); // 取平均值
+
+        float dx = static_cast<float>(kp_now * dx_now + kp_future * dx_future); // 综合当前和未来的偏移，得到最终的 PID 输入
+        info[0][0] = to_string(static_cast<int>(dx)); // 存储误差
+        info[0][1] = to_string(static_cast<int>(pid.compute(abs(dx)))); // 存储 PID 输出 
+        
         if(uart_flag) { 
             uart_flag = false; // 只初始化一次 UART
             thread send_thread(info_to_MCU, info);

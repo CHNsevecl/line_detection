@@ -9,7 +9,7 @@ PID::PID(float kp, float ki, float kd) {
     _integral = 0.0f;
     _prev_error = 0.0f;
     _max_integral = 100.0f; // 默认积分限幅
-    _max_output = 10000.0f;   // 默认输出限幅
+    _max_output = 20000.0f;   // 默认输出限幅
     _min_output = 0.0f;   // 默认输出下限
 }
 
@@ -40,7 +40,7 @@ void PID::setOutputLimit(float limit) {
 float PID::compute(float input) {
     // 1. 比例项 (P)
     // 当前误差就是 input
-    //if (input < 10) return 0; // 输入限幅，防止过大输入导致系统失控
+    if (input < 10) return 0; // 输入限幅，防止过大输入导致系统失控
     float p_term = _kp * input;
 
     // 2. 积分项 (I)

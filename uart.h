@@ -37,9 +37,16 @@ public:
         }
 
         // 设置波特率
-        cfsetispeed(&options, baudrate);
-        cfsetospeed(&options, baudrate);
-
+        switch (baudrate) {
+            case 9600: cfsetispeed(&options, B9600); cfsetospeed(&options, B9600); break;
+            case 19200: cfsetispeed(&options, B19200); cfsetospeed(&options, B19200); break;
+            case 38400: cfsetispeed(&options, B38400); cfsetospeed(&options, B38400); break;
+            case 115200: cfsetispeed(&options, B115200); cfsetospeed(&options, B115200); break;
+            default:
+                cout << "不支持的波特率: " << baudrate << endl;
+                return false;
+        }
+        
         // 控制选项
         options.c_cflag |= (CLOCAL | CREAD); // 开启接收
         options.c_cflag &= ~PARENB;          // 无校验位
