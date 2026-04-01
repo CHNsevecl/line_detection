@@ -6,6 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(OpenCV REQUIRED)
 
-add_executable(line_detection main.cpp)
+add_executable(line_detection PID.cpp main.cpp)
 
 target_link_libraries(line_detection ${OpenCV_LIBS})

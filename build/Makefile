@@ -129,6 +129,30 @@ line_detection/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/line_detection.dir/build.make CMakeFiles/line_detection.dir/build
 .PHONY : line_detection/fast
 
+PID.o: PID.cpp.o
+.PHONY : PID.o
+
+# target to build an object file
+PID.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/line_detection.dir/build.make CMakeFiles/line_detection.dir/PID.cpp.o
+.PHONY : PID.cpp.o
+
+PID.i: PID.cpp.i
+.PHONY : PID.i
+
+# target to preprocess a source file
+PID.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/line_detection.dir/build.make CMakeFiles/line_detection.dir/PID.cpp.i
+.PHONY : PID.cpp.i
+
+PID.s: PID.cpp.s
+.PHONY : PID.s
+
+# target to generate assembly for a file
+PID.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/line_detection.dir/build.make CMakeFiles/line_detection.dir/PID.cpp.s
+.PHONY : PID.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -162,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... line_detection"
+	@echo "... PID.o"
+	@echo "... PID.i"
+	@echo "... PID.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

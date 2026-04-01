@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/sevecl/Desktop/C/line_detection/PID.cpp" "CMakeFiles/line_detection.dir/PID.cpp.o" "gcc" "CMakeFiles/line_detection.dir/PID.cpp.o.d"
   "/home/sevecl/Desktop/C/line_detection/main.cpp" "CMakeFiles/line_detection.dir/main.cpp.o" "gcc" "CMakeFiles/line_detection.dir/main.cpp.o.d"
   "" "line_detection" "gcc" "CMakeFiles/line_detection.dir/link.d"
   )
