@@ -13,6 +13,9 @@ using namespace cv;
 UART uart; // 假设单片机连接在 /dev/ttyAMA0，波特率为 115200
 mutex uart_mutex;
 bool uart_flag = true; // UART 初始化标志
+bool About_to_turn_flag = false; // 即将转弯标志
+bool turning_flag = false; // 转弯执行标志
+bool direction = false; // false 右转，true 左转
 
 
 void info_to_MCU(vector<vector<string>> info) {
@@ -25,7 +28,7 @@ void info_to_MCU(vector<vector<string>> info) {
         }
         messages += "\n";
         uart.send(messages);
-        usleep(2500);
+        usleep(2500);//
     }
     uart_flag = true; // 发送完成后重置标志
 }
@@ -109,34 +112,90 @@ int main()
         imshow("Camera", frame);
 
 
-        // 拟合线计算
-        int dx_now =0;
-        for(int y = end_row-1;y >= end_row*3/4 + 10 ;y -=10){
-            int dx = center_points[y].x - 320;
-            dx_now += dx;
-        }
-        dx_now /= (end_row/10/4); // 取平均值
+        // =================拟合线计算=======================
+        if (!turning_flag) {
+            int dx_now =0;
+            for(int y = end_row-1;y >= end_row*3/4 + 10 ;y -=10){
+                int dx = center_points[y].x - 320;
+                dx_now += dx;
+            }
+            dx_now /= (end_row/10/4); // 取平均值
 
-        int dx_future =0;
-        for(int y = end_row*3/4;y >= end_row/2 ;y -=10){
-            int dx = center_points[y].x - 320;
-            dx_future += dx;
-        }
-        dx_future /= (end_row/10/4); // 取平均值
+            int dx_future =0;
+            for(int y = end_row*3/4;y >= end_row/2 ;y -=10){
+                int dx = center_points[y].x - 320;
+                dx_future += dx;
+            }
+            dx_future /= (end_row/10/4); // 取平均值
 
-        float dx = static_cast<float>(kp_now * dx_now + kp_future * dx_future); // 综合当前和未来的偏移，得到最终的 PID 输入
-        info[0][0] = to_string(static_cast<int>(dx)); // 存储误差
-        info[0][1] = to_string(static_cast<int>(pid.compute(abs(dx)))); // 存储 PID 输出 
+            float dx = static_cast<float>(kp_now * dx_now + kp_future * dx_future); // 综合当前和未来的偏移，得到最终的 PID 输入
+            info[0][0] = to_string(static_cast<int>(dx)); // 存储误差
+            info[0][1] = to_string(static_cast<int>(pid.compute(abs(dx)))); // 存储 PID 输出 
         
+        //===================转弯判断=======================
+        
+        if(!About_to_turn_flag) { // 只有在不转弯状态下才进行转弯判断
+            int count =0;
+            int turn_x =0;
+            for (int y = 0; y < end_row/2 ; y += 1) {
+                if (center_points[y].y < 240 && (center_points[y].x > 480 || center_points[y].x < 160)) { // 右转
+                    turn_x += center_points[y].x -320;
+                    count++;
+                }
+            }
+            turn_x /= count; // 取平均值
+            cout<<"1."<<turn_x <<". "<<count<<endl;
+
+            if ((turn_x < -200 || turn_x > 200) && count >5 && !About_to_turn_flag) { // 转弯条件：重心偏移大于200且满足数量条件，且当前不在转弯状态
+                About_to_turn_flag = true;
+                if (turn_x > 0) {
+                    direction = false; // 右转
+                } else {
+                    direction = true; // 左转
+                }
+            } 
+        }
+
+        
+        //===================转弯执行===================   
+        if (About_to_turn_flag && !turning_flag) {
+            turning_flag = true; // 设置转弯执行标志
+            int count =0;
+            int turn_x =0;
+            for (int y = 240; y < end_row ; y += 1) {
+                if ((center_points[y].x < 480 || center_points[y].x > 160)) { // 右转
+                    turn_x += center_points[y].x -320;
+                    count++;
+                }
+            }
+            turn_x /= count; // 取平均值
+            cout<<"2."<<turn_x <<". "<<count<<endl;
+            if (turn_x <-300){
+                info[0][0] = "TURN"; // 存储转弯信息
+                info[0][1] = to_string(static_cast<int>(direction)); // 存储转弯方向
+                turning_flag = true; // 设置转弯执行标志
+                
+            }
+        } 
+        //==================转弯结束检测==================
+        if (turning_flag) {
+            
+            for(int y =end_row*5/8;y >= end_row/2 ;y -=10){
+                if (center_points[y].x == 320) {
+                    About_to_turn_flag = false; // 转弯完成，重置转弯标志
+                    turning_flag = false; // 重置转弯执行标志
+                    break;
+                }
+            }
+        }
+
+        //===================UART发送==================
         if(uart_flag) { 
             uart_flag = false; // 只初始化一次 UART
             thread send_thread(info_to_MCU, info);
             send_thread.detach(); // 分离线程，让它独立运行
         }
             
-
-        //cout << "误差: " << info[0] << endl;
-        //cout << "d PID输出: " << info[1] << endl; // 计算 PID 输出（以中心点偏移为输入）
 
             if (waitKey(1) == 27) {
                 break;
