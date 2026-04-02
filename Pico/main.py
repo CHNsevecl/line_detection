@@ -13,17 +13,35 @@ def main():
             lst = com.get_command()  # 获取解析好的列
 
             if lst:
+                print(lst)
                 
-                if int(lst[1]) == 0:
+                if lst[0] =="TURN_RIGHT":
+                    while lst[0] == "TURN_RIGHT":
+                        lst = com.get_command()
+                        while lst == None:
+                            lst = com.get_command()
+                        car.Motor_forward(speedA=5000+int(lst[1]),speedB = 5000)
+                        print("right")
+                    car.Motor_brake()    
+                elif lst[0] == "TURN_LEFT":
+                    while lst[0] == "TURN_LEFT":
+                        lst = com.get_command()
+                        while lst == None:
+                            lst = com.get_command()
+                        car.Motor_forward(speedA=5000+int(lst[1]),speedB = 5000+int(lst[1]))
+                        print("left")
+                    car.Motor_brake()
+                elif int(lst[1]) == 0:
                     car.Motor_forward()
-                    print("前进")
+                    #print("前进")
                 elif int(lst[0]) > 0:
                     car.Motor_forward(speedA=15000+int(lst[1]))
-                    print("右转")
+                    #print("右转")
                 elif int(lst[0]) < 0:
                     car.Motor_forward(speedB=15000+int(lst[1]))
-                    print("左转")
-                print(lst)
+                    #print("左转")
+                else:
+                    car.Motor_brake()
     except Exception as e:
         print(f"发生错误: {e}")
         led.value(0)  # 确保在发生错误时关闭LED

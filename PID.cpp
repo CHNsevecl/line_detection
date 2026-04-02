@@ -9,7 +9,7 @@ PID::PID(float kp, float ki, float kd) {
     _integral = 0.0f;
     _prev_error = 0.0f;
     _max_integral = 100.0f; // 默认积分限幅
-    _max_output = 20000.0f;   // 默认输出限幅
+    _max_output = 15000.0f;   // 默认输出限幅
     _min_output = 0.0f;   // 默认输出下限
 }
 
