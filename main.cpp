@@ -64,6 +64,7 @@ int main()
     int start_row = 0;
     int end_row = 480;
     int img_width = 640;
+    int Num_of_corners = 0;
     int sum_of_marked_points = 0; // 计数器：每行重心的数量
     float kp_now = 0.9;
     float kp_future = 0.1;
@@ -149,28 +150,43 @@ int main()
         //===================转弯判断=======================
         
         if(!About_to_turn_flag) { // 只有在不转弯状态下才进行转弯判断
-            int count =0;
+            int count_turn =0;
             int turn_x =0;
-            for (int y = 20; y < end_row/2 ; y += 1) {
-                if ( (center_points[y].y != 0) &&(center_points[y].x > 400 || center_points[y].x < 240)) { // 右转
-                    turn_x += center_points[y].x -320;
-                    count++;
-                    //cout << y<<". "<<center_points[y].y<<". "<<center_points[y].x<<endl;
+            int center_x =0;
+            int count_middle =0;
+            for (int y = 0; y < 140; y++){
+                cout << "1."<<center_points[y].x<<endl;
+                if ( (center_points[y].x != 0) &&(center_points[y].x < 400 && center_points[y].x > 240)) { 
+                    
+                    count_middle++;
+                    
                 }
             }
-            turn_x /= count; // 取平均值
-            //cout<<"1."<<turn_x <<". "<<count<<endl;
-
-            if ((turn_x < -200 || turn_x > 200) && count >5 && !About_to_turn_flag) { // 转弯条件：重心偏移大于200且满足数量条件，且当前不在转弯状态
-                About_to_turn_flag = true;
-                //cout << turn_x<<endl; 
-                //cout << "flag:" << direction << endl;
-                if (turn_x > 0) {
-                    direction = false; // 右转
-                } else {
-                    direction = true; // 左转
+            
+            cout<<"2."<<" "<<count_middle<<endl;
+            if (count_middle < 20) { // 如果前方重心偏移较小，才进行转弯判断
+                for (int y = 140; y < end_row/2 ; y += 1) {
+                    if ( (center_points[y].y != 0) &&(center_points[y].x > 400 || center_points[y].x < 240)) { 
+                        turn_x += center_points[y].x -320;
+                        count_turn++;
+                        //cout << y<<". "<<center_points[y].y<<". "<<center_points[y].x<<endl;
+                    }
                 }
-            } 
+                turn_x /= count_turn; // 取平均值
+                //cout<<"1."<<turn_x <<". "<<count_turn<<endl;
+
+                if ((turn_x < -100 || turn_x > 100) && count_turn >5 && !About_to_turn_flag) { // 转弯条件：重心偏移大于200且满足数量条件，且当前不在转弯状态
+                    About_to_turn_flag = true;
+                    
+                    //cout << turn_x<<endl; 
+                    //cout << "flag:" << direction << endl;
+                    if (turn_x > 0) {
+                        direction = false; // 右转
+                    } else {
+                        direction = true; // 左转
+                    }
+                } 
+            }
         }
 
         
@@ -228,7 +244,7 @@ int main()
             
         }
 
-        cout <<"Flag:"<<About_to_turn_flag<<endl;
+        //cout <<"Flag:"<<About_to_turn_flag<<endl;
         if (!About_to_turn_flag && sum_of_marked_points < 5) { // 如果重心数量过少，可能是前方有障碍物或者线条断了，触发刹车
             flag_brake = true;
             brake[0][0] = "BRAKE"; // 存储刹车信息
