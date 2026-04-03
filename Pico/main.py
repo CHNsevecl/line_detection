@@ -20,7 +20,7 @@ def main():
                         lst = com.get_command()
                         while lst == None:
                             lst = com.get_command()
-                        car.Motor_forward(speedA=5000+int(lst[1]),speedB = 5000)
+                        car.Motor_forward(speedA=3000+int(lst[1]),speedB = 3000)
                         print("right")
                     car.Motor_brake()    
                 elif lst[0] == "TURN_LEFT":
@@ -28,9 +28,13 @@ def main():
                         lst = com.get_command()
                         while lst == None:
                             lst = com.get_command()
-                        car.Motor_forward(speedA=5000+int(lst[1]),speedB = 5000+int(lst[1]))
+                        car.Motor_forward(speedB=3000+int(lst[1]),speedA = 3000)
                         print("left")
                     car.Motor_brake()
+                    
+                elif lst[0] == "BRAKE":
+                    car.Motor_brake()
+                    break
                 elif int(lst[1]) == 0:
                     car.Motor_forward()
                     #print("前进")
@@ -44,6 +48,7 @@ def main():
                     car.Motor_brake()
     except Exception as e:
         print(f"发生错误: {e}")
+        print(lst)
         led.value(0)  # 确保在发生错误时关闭LED
         car.finish()
 if __name__ == "__main__":
